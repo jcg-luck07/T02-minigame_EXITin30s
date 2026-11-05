@@ -678,8 +678,10 @@ body.reduced-motion .confetti-container { display: none; }
 
 /* ===== 축하방 클리어 ===== */
 .bed-msg {
-  text-align: center; font-size: 1.3rem; font-weight: 800;
-  color: var(--text-main); padding: 40px 20px; line-height: 1.5;
+  background: #0f1622; border: 1px solid #1e2c3d;
+  padding: 18px; border-radius: var(--radius-sm);
+  font-size: 0.95rem; line-height: 1.85; color: #e2e8f0;
+  text-align: center;
 }
 .celebration-clear-msg {
   text-align: center; font-size: 1.4rem; font-weight: 900;
