@@ -183,7 +183,6 @@
     dialGuideText: document.getElementById('dialGuideText'),
     dialBtns: [1,2,3,4,5,6,7,8].map(n => document.getElementById('dBtn'+n)),
     btnDiaryRead: document.getElementById('btnDiaryRead'),
-    toastMsg: document.getElementById('toastMsg'),
 
     crateCountText: document.getElementById('crateCountText'),
     btnTakeChest: document.getElementById('btnTakeChest'),
@@ -338,8 +337,8 @@
     state.timeRemaining = BASE_TIME;
     state.currentTokens = 0;
     state.currentRoom = 'main';
-    state.doorAOpen = persistentData.doorAUnlocked;
-    state.doorBOpen = persistentData.doorBUnlocked;
+    state.doorAOpen = false;   // 문은 닫힌 채 시작 (해제 여부는 persistentData에 유지)
+    state.doorBOpen = false;
     state.doorADialTens = 0; state.doorADialOnes = 0;
     state.doorBDialTens = 0; state.doorBDialOnes = 0;
     state.activeDoor = null;
@@ -380,8 +379,8 @@
     state.timeRemaining = BASE_TIME;
     state.currentTokens = 0;
     state.currentRoom = 'main';
-    state.doorAOpen = persistentData.doorAUnlocked;
-    state.doorBOpen = persistentData.doorBUnlocked;
+    state.doorAOpen = false;   // 문은 닫힌 채 시작 (해제 여부는 persistentData에 유지)
+    state.doorBOpen = false;
     state.doorADialTens = 0; state.doorADialOnes = 0;
     state.doorBDialTens = 0; state.doorBDialOnes = 0;
     state.activeDoor = null;
@@ -530,18 +529,27 @@
   }
 
   // ===== 안내 토스트 / 첫 일지 =====
-  let toastTimer = null;
+  const TOAST_MS = 1800;        // 떠올라서 사라지기까지 걸리는 시간 (애니메이션)
+  const TOAST_COOLDOWN_MS = 900; // 다음 메시지가 새로 뜰 수 있기까지의 딜레이 (TOAST_MS의 절반)
+  let lastToastAt = 0;
   function showToast(msg, anchorEl) {
-    DOM.toastMsg.textContent = msg;
+    const now = Date.now();
+    if (now - lastToastAt < TOAST_COOLDOWN_MS) return;   // 연속 클릭으로 파바박 뜨는 것 방지
+    lastToastAt = now;
+
+    // 메시지마다 새 요소를 만들어서, 이전 메시지가 올라가는 중에도 겹쳐 뜰 수 있음
+    const stageEl = document.getElementById('roomStage');
+    const el = document.createElement('div');
+    el.className = 'toast-msg show';
+    el.textContent = msg;
     if (anchorEl) {
-      const stage = document.getElementById('roomStage').getBoundingClientRect();
+      const stage = stageEl.getBoundingClientRect();
       const a = anchorEl.getBoundingClientRect();
-      DOM.toastMsg.style.left = (a.left + a.width / 2 - stage.left) + 'px';
-      DOM.toastMsg.style.top = (a.top - stage.top - 10) + 'px';
+      el.style.left = (a.left + a.width / 2 - stage.left) + 'px';
+      el.style.top = (a.top - stage.top - 10) + 'px';
     }
-    DOM.toastMsg.classList.add('show');
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => DOM.toastMsg.classList.remove('show'), 2200);
+    stageEl.appendChild(el);
+    setTimeout(() => el.remove(), TOAST_MS);
   }
 
   function handleDiaryRead() {
@@ -687,14 +695,11 @@
         state.currentTokens += gain;
         state.dialStep = 1;
         updateDialVisuals();
-        if (state.gameMode === 'demo') {
-          triggerFloatingTokenFx('+1');
-          setTimeout(() => triggerFloatingTokenFx('+1'), 150);
-          setTimeout(() => triggerFloatingTokenFx('+1'), 300);
-        } 
-        else {
-          triggerFloatingTokenFx('+1');
-          setTimeout(() => triggerFloatingTokenFx('+1'), 150);
+        // 코인 연출: 간격을 띄우고(시간차 + 좌우 위치) 크게 표시
+        const coinCount = gain;
+        for (let i = 0; i < coinCount; i++) {
+          const dx = (i - (coinCount - 1) / 2) * 46;
+          setTimeout(() => triggerFloatingTokenFx(dx), i * 280);
         }
         updateUI();
       }
@@ -707,13 +712,14 @@
     }
   }
 
-  function triggerFloatingTokenFx(text) {
+  function triggerFloatingTokenFx(dx) {
     if (persistentData.isReducedMotion) return;
     const fx = document.createElement('div');
     fx.className = 'floating-token-fx';
     fx.textContent = `🪙`;
+    fx.style.setProperty('--dx', (dx || 0) + 'px');
     DOM.circleDial.appendChild(fx);
-    setTimeout(() => fx.remove(), 850);
+    setTimeout(() => fx.remove(), 1100);
   }
 
   function updateDialVisuals() {
@@ -789,6 +795,7 @@
       if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
       state.status = 'GAME_OVER';
       recordHistory('진엔딩 - 탈출 성공', '복도 EXIT 통과');
+      resetProgressForNewGame();   // 다음 시작은 완전 새 게임
       DOM.resultModalCard.classList.remove('wide-result');
       DOM.modalIcon.textContent = 'YOU🏃WIN';
       DOM.modalTitle.innerHTML = '축하합니다! <br> 진정한 탈출에 성공하였습니다.';
@@ -798,6 +805,16 @@
       DOM.resultModal.style.display = 'flex';
       updateUI();
     }, 3000);
+  }
+
+  // 진엔딩 후: 진행 데이터(상자 토큰, 일지 확인, 문 해제, 축하방 상자)만 초기화. 기록표·소리 설정은 유지
+  function resetProgressForNewGame() {
+    persistentData.chestTokens = 2;
+    persistentData.celebrationChestClaimed = false;
+    persistentData.diaryRead = false;
+    persistentData.doorAUnlocked = false;
+    persistentData.doorBUnlocked = false;
+    savePersistentData();
   }
 
   // ===== 게임오버 =====
@@ -845,7 +862,7 @@
     if (state.timeRemaining <= 10.0 && state.status === 'PLAYING' && !state.exitPending) {
       DOM.hudTimer.classList.add('danger-state');
     } else DOM.hudTimer.classList.remove('danger-state');
-    DOM.hudTimer.classList.toggle('timer-hidden', state.timerLocked);
+    DOM.hudTimer.classList.toggle('timer-hidden', state.timerLocked || state.status === 'READY');
     DOM.propMachine.classList.toggle('locked', state.timerLocked && state.status === 'PLAYING');
     DOM.crateCountText.textContent = persistentData.chestTokens;
     DOM.btnTakeChest.disabled = (persistentData.chestTokens <= 0);
