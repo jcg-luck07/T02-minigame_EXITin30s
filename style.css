@@ -825,7 +825,7 @@ body.reduced-motion .confetti-container { display: none; }
 .room-prop.locked:hover:not(.static-scenery) {
   filter: grayscale(1) brightness(0.55);
   transform: none;
-  cursor: not-allowed;
+  cursor: pointer;
 }
 .toast-msg {
   position: absolute; left: 50%; top: 40%;
