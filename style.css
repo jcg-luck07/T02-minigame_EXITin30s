@@ -630,16 +630,16 @@ body.reduced-motion .confetti-container { display: none; }
 }
 .diary-simple strong { color: var(--accent-gold); }
 .diary-simple strong.note-title { color: #fff; }
+/* 상자 팝업: 축하방 상자 보상 박스(.celebration-chest-reward)와 같은 노란 스타일 */
 .vault-box {
-  background: rgba(192,132,252,0.08);
-  border: 1px dashed rgba(192,132,252,0.35);
-  padding: 24px; border-radius: var(--radius-sm);
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 16px;
+  background: rgba(251,191,36,0.06);
+  border: 1px dashed rgba(251,191,36,0.4);
+  border-radius: var(--radius-sm);
   text-align: center; margin-bottom: 20px;
 }
 .vault-label { font-size: 0.9rem; color: var(--text-dim); }
-.vault-digits { margin-top: 6px; }
-.vault-token-icon { font-size: 1.8rem; vertical-align: middle; }
-.vault-digits strong { font-size: 2.2rem; color: var(--accent-purple); font-weight: 900; }
 
 /* ===== 축하방 상자 ===== */
 .celebration-chest-content {
