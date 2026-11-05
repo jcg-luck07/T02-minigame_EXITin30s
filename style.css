@@ -638,6 +638,7 @@ body.reduced-motion .confetti-container { display: none; }
 }
 .vault-label { font-size: 0.9rem; color: var(--text-dim); }
 .vault-digits { margin-top: 6px; }
+.vault-token-icon { font-size: 1.8rem; vertical-align: middle; }
 .vault-digits strong { font-size: 2.2rem; color: var(--accent-purple); font-weight: 900; }
 
 /* ===== 축하방 상자 ===== */
