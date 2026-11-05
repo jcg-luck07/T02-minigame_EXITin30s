@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>30초 안에 탈출하라</title>
+  <title>방탈출</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -50,8 +50,9 @@
             <img src="assets/door_closed.webp" alt="문" id="doorLeftImg" class="flip-h">
             <div class="obj-indicator">문</div>
           </div>
-          <div class="room-prop prop-bed static-scenery">
+          <div class="room-prop prop-bed" id="propBed" title="침대">
             <img src="assets/bed.webp" alt="침대">
+            <div class="obj-indicator">침대</div>
           </div>
           <div class="room-prop prop-desk" id="propDesk" title="일지">
             <img src="assets/desk.webp" alt="일지">
@@ -118,7 +119,7 @@
         <div class="start-card">
           <div class="start-icon">🚪🏃🚪</div>
           <h2 class="start-title"></h2>
-          <h3 class="start-subtitle">30초 안에 탈출하라</h3>
+          <h3 class="start-subtitle" id="startSubtitle">방을 탈출하라</h3>
           <p class="start-desc">
               마우스만을 이용해 진행합니다.
           </p>
@@ -255,7 +256,7 @@
                 <strong class="note-title">메모</strong><br>
                 드디어 알아냈다. 뭐? 클리어? 하하. 난 너한테 놀아나지 않아.<br>
                 <strong>진짜 탈출구</strong>는 따로 있었어. 암호는 <strong>12</strong>.<br>
-                이제 탈출만 하면 돼! 어? 근데 남은 시간이? 2..1...
+                이제 탈출만 하면 돼! 어? 그런데 남은 시간이? 2..1...
                 <em>(메모는 여기서 끊겨있다.)</em>
               </p>
               <div class="celebration-chest-reward" id="celebrationChestRewardBox">
@@ -264,6 +265,10 @@
                 <p class="celebration-chest-claimed" id="celebrationChestClaimedText" style="display:none;">비어있다</p>
               </div>
             </div>
+          </div>
+
+          <div class="inspect-view" id="viewBed" style="display: none;">
+            <div class="bed-msg">눈을 뜨니 이 침대 위였다.</div>
           </div>
 
           <div class="inspect-view" id="viewCelebrationClear" style="display: none;">

@@ -141,6 +141,8 @@
     propDoorRight: document.getElementById('propDoorRight'),
     doorRightImg: document.getElementById('doorRightImg'),
     propDesk: document.getElementById('propDesk'),
+    propBed: document.getElementById('propBed'),
+    startSubtitle: document.getElementById('startSubtitle'),
     propChest: document.getElementById('propChest'),
     propMachine: document.getElementById('propMachine'),
 
@@ -164,6 +166,7 @@
     viewChest: document.getElementById('viewChest'),
     viewCelebrationChest: document.getElementById('viewCelebrationChest'),
     viewCelebrationClear: document.getElementById('viewCelebrationClear'),
+    viewBed: document.getElementById('viewBed'),
 
     doorATens: document.getElementById('doorATens'),
     doorAOnes: document.getElementById('doorAOnes'),
@@ -246,6 +249,11 @@
   function savePersistentData() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(persistentData)); }
     catch (e) { console.error('[The Machine] 저장 오류:', e); }
+  }
+
+  // ===== 시작 화면 제목 (스포일러 방지) =====
+  function updateStartTitle() {
+    DOM.startSubtitle.textContent = persistentData.diaryRead ? '30초 안에 탈출하라' : '방을 탈출하라';
   }
 
   // ===== 볼륨 UI =====
@@ -400,6 +408,7 @@
     updateDialDigits();
     closeCloseupSilent();
     DOM.resultModal.style.display = 'none';
+    updateStartTitle();
     DOM.startScreenOverlay.style.display = 'flex';
     updateUI();
   }
@@ -483,7 +492,7 @@
   // ===== 클로즈업 =====
   const ALL_VIEWS = [
     'viewDoorAClosed','viewDoorBClosed','viewDoorOpen','viewMachine',
-    'viewDesk','viewChest','viewCelebrationChest','viewCelebrationClear'
+    'viewDesk','viewChest','viewCelebrationChest','viewCelebrationClear','viewBed'
   ];
 
   function openCloseup(viewName) {
@@ -503,7 +512,8 @@
       desk: DOM.viewDesk,
       chest: DOM.viewChest,
       celebrationChest: DOM.viewCelebrationChest,
-      celebrationClear: DOM.viewCelebrationClear
+      celebrationClear: DOM.viewCelebrationClear,
+      bed: DOM.viewBed
     };
     if (map[viewName]) map[viewName].style.display = 'block';
     const diaryLock = (viewName === 'desk' && state.timerLocked);
@@ -695,11 +705,9 @@
         state.currentTokens += gain;
         state.dialStep = 1;
         updateDialVisuals();
-        // 코인 연출: 간격을 띄우고(시간차 + 좌우 위치) 크게 표시
-        const coinCount = gain;
-        for (let i = 0; i < coinCount; i++) {
-          const dx = (i - (coinCount - 1) / 2) * 46;
-          setTimeout(() => triggerFloatingTokenFx(dx), i * 280);
+        // 코인 연출: 같은 자리에서 시간차(0.28초)로 뿅뿅 나옴
+        for (let i = 0; i < gain; i++) {
+          setTimeout(() => triggerFloatingTokenFx(0), i * 280);
         }
         updateUI();
       }
@@ -892,6 +900,7 @@
 
   DOM.propMachine.addEventListener('click', () => openCloseup('machine'));
   DOM.propDesk.addEventListener('click', () => openCloseup('desk'));
+  DOM.propBed.addEventListener('click', () => openCloseup('bed'));
   DOM.propChest.addEventListener('click', () => openCloseup('chest'));
   DOM.propCelebrationDesk.addEventListener('click', handleCelebrationDeskClick);
   DOM.propCelebrationChest.addEventListener('click', () => {
@@ -1051,6 +1060,7 @@
   DOM.historyBadge.textContent = persistentData.history.length;
   DOM.btnReducedMotion.textContent = persistentData.isReducedMotion ? '🛑' : '✨';
   updateVolumeUI();
+  updateStartTitle();
   setGameMode('normal');
   applyRoomVisual();
   updateDialDigits();
