@@ -26,6 +26,7 @@
     gameMode: 'normal',
     currentRoom: 'main',
     isPaused: false,           // ★ 추가: 일시정지 여부
+    timerLocked: false,        // 첫 플레이: 일지를 읽기 전까지 타이머 정지/숨김
 
     doorAOpen: false,
     doorADialTens: 0,
@@ -47,6 +48,7 @@
   let persistentData = {
     chestTokens: 2,
     celebrationChestClaimed: false,
+    diaryRead: false,
     isMuted: false,
     volume: 0.6,
     isReducedMotion: false,
@@ -88,7 +90,6 @@
     dialStep: (s) => playTone(400+s*60,'sine',0.06,0.07),
     dialComplete: () => { playTone(784,'triangle',0.1,0.1); setTimeout(()=>playTone(1046,'triangle',0.15,0.12),80); },
     dialError: () => playTone(180,'sawtooth',0.2,0.12),
-    extendTime: () => { playTone(587.33,'sine',0.08,0.08); setTimeout(()=>playTone(880,'sine',0.12,0.09),70); },
     doorOpen: () => { playTone(400,'triangle',0.15,0.1); setTimeout(()=>playTone(600,'triangle',0.2,0.12),120); },
     doorFail: () => playTone(150,'sawtooth',0.3,0.15),
     claimChest: () => { playTone(440,'square',0.1,0.06); setTimeout(()=>playTone(880,'square',0.15,0.08),100); },
@@ -179,7 +180,8 @@
     stepCounter: document.getElementById('stepCounter'),
     dialGuideText: document.getElementById('dialGuideText'),
     dialBtns: [1,2,3,4,5,6,7,8].map(n => document.getElementById('dBtn'+n)),
-    btnExtend: document.getElementById('btnExtend'),
+    btnDiaryRead: document.getElementById('btnDiaryRead'),
+    toastMsg: document.getElementById('toastMsg'),
 
     crateCountText: document.getElementById('crateCountText'),
     btnTakeChest: document.getElementById('btnTakeChest'),
@@ -225,6 +227,7 @@
       // (새로고침으로 토큰을 무한 파밍하는 것을 막기 위함입니다)
 
       if (typeof p.celebrationChestClaimed === 'boolean') persistentData.celebrationChestClaimed = p.celebrationChestClaimed;
+      if (typeof p.diaryRead === 'boolean') persistentData.diaryRead = p.diaryRead;
       if (typeof p.isMuted === 'boolean') persistentData.isMuted = p.isMuted;
       if (typeof p.volume === 'number' && !isNaN(p.volume)) {
         persistentData.volume = Math.min(1, Math.max(0, p.volume));
@@ -326,6 +329,7 @@
   function startCountdown() {
     state.status = 'PLAYING';
     state.isPaused = false;
+    state.timerLocked = !persistentData.diaryRead;
     DOM.pauseOverlay.style.display = 'none';
     state.timeRemaining = BASE_TIME;
     state.currentTokens = 0;
@@ -367,6 +371,7 @@
   function prepareRestart() {
     state.status = 'READY';
     state.isPaused = false;
+    state.timerLocked = false;
     DOM.pauseOverlay.style.display = 'none';
     state.timeRemaining = BASE_TIME;
     state.currentTokens = 0;
@@ -400,6 +405,7 @@
     if (state.status !== 'PLAYING') return;
     if (state.exitPending) return;
     if (state.isPaused) return;   // ★ 추가: 일시정지 상태면 타이머 작동 중지
+    if (state.timerLocked) { lastRealTime = Date.now(); return; }
     const now = Date.now();
     const delta = (now - lastRealTime) / 1000;
     lastRealTime = now;
@@ -479,6 +485,10 @@
 
   function openCloseup(viewName) {
     if (state.status !== 'PLAYING') return;
+    if (viewName === 'machine' && state.timerLocked) {
+      showToast('작동 방법을 모르겠다. 주변을 둘러보자.');
+      return;
+    }
     state.currentView = viewName;
     SoundFX.click();
     ALL_VIEWS.forEach(k => { DOM[k].style.display = 'none'; });
@@ -493,6 +503,9 @@
       celebrationClear: DOM.viewCelebrationClear
     };
     if (map[viewName]) map[viewName].style.display = 'block';
+    const diaryLock = (viewName === 'desk' && state.timerLocked);
+    DOM.btnCloseCloseup.style.display = diaryLock ? 'none' : '';
+    DOM.btnDiaryRead.style.display = diaryLock ? '' : 'none';
     if (viewName === 'machine') updateDialVisuals();
     if (viewName === 'doorAClosed' || viewName === 'doorBClosed') updateDialDigits();
     if (viewName === 'celebrationChest') renderCelebrationChestView();
@@ -502,6 +515,7 @@
 
   function closeCloseup() {
     if (state.currentView === 'none') return;
+    if (state.timerLocked && state.currentView === 'desk') return;  // 첫 일지는 '읽었다'로만 닫힘
     state.currentView = 'none';
     DOM.closeupLayer.style.display = 'none';
     SoundFX.click();
@@ -509,6 +523,26 @@
   function closeCloseupSilent() {
     state.currentView = 'none';
     DOM.closeupLayer.style.display = 'none';
+  }
+
+  // ===== 안내 토스트 / 첫 일지 =====
+  let toastTimer = null;
+  function showToast(msg) {
+    DOM.toastMsg.textContent = msg;
+    DOM.toastMsg.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => DOM.toastMsg.classList.remove('show'), 2200);
+  }
+
+  function handleDiaryRead() {
+    if (!state.timerLocked) return;
+    persistentData.diaryRead = true;
+    savePersistentData();
+    state.timerLocked = false;
+    lastRealTime = Date.now();
+    SoundFX.click();
+    closeCloseup();
+    updateUI();
   }
 
   // ===== 문 클릭 =====
@@ -670,7 +704,7 @@
   }
 
   function updateDialVisuals() {
-    DOM.stepCounter.textContent = `${state.dialStep} / 8`;
+    DOM.stepCounter.textContent = `${state.dialStep - 1} / 8`;
     DOM.dialGuideText.textContent = `${state.dialStep}번 버튼 클릭!`;
     DOM.dialBtns.forEach((btn, idx) => {
       const n = idx + 1;
@@ -678,15 +712,6 @@
       if (n < state.dialStep) btn.classList.add('passed-step');
       else if (n === state.dialStep) btn.classList.add('next-step');
     });
-  }
-
-  function handleExtend() {
-    if (state.status !== 'PLAYING') return;
-    if (state.currentTokens < 1) return;
-    state.currentTokens -= 1;
-    state.timeRemaining += 2.0;
-    SoundFX.extendTime();
-    updateUI();
   }
 
   // ===== 상자들 =====
@@ -807,7 +832,8 @@
     if (state.timeRemaining <= 10.0 && state.status === 'PLAYING' && !state.exitPending) {
       DOM.hudTimer.classList.add('danger-state');
     } else DOM.hudTimer.classList.remove('danger-state');
-    DOM.btnExtend.disabled = (state.currentTokens < 1);
+    DOM.hudTimer.classList.toggle('timer-hidden', state.timerLocked);
+    DOM.propMachine.classList.toggle('locked', state.timerLocked && state.status === 'PLAYING');
     DOM.crateCountText.textContent = persistentData.chestTokens;
     DOM.btnTakeChest.disabled = (persistentData.chestTokens <= 0);
   }
@@ -862,7 +888,7 @@
     const n = idx + 1;
     btn.addEventListener('click', () => handleDialButtonClick(n));
   });
-  DOM.btnExtend.addEventListener('click', handleExtend);
+  DOM.btnDiaryRead.addEventListener('click', handleDiaryRead);
 
   DOM.btnEnterDoor.addEventListener('click', handleEnterDoor);
   DOM.btnCloseDoor.addEventListener('click', handleCloseDoor);
@@ -922,7 +948,7 @@
   DOM.btnResetSave.addEventListener('click', () => {
     if (confirm('모든 상자 토큰과 기록을 초기화하시겠습니까?')) {
       persistentData = {
-        chestTokens: 2, celebrationChestClaimed: false,
+        chestTokens: 2, celebrationChestClaimed: false, diaryRead: false,
         isMuted: false, volume: 0.6,
         isReducedMotion: false, history: []
       };

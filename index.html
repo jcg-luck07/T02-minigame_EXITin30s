@@ -109,6 +109,8 @@
       <!-- 색종이 컨테이너 -->
       <div class="confetti-container" id="confettiContainer"></div>
 
+      <div class="toast-msg" id="toastMsg"></div>
+
       <!-- 시작 화면 -->
       <div class="start-screen-overlay" id="startScreenOverlay">
         <div class="start-card">
@@ -204,7 +206,7 @@
                 <div class="circle-dial" id="circleDial">
                   <div class="dial-center-hub">
                     <div class="gear-spinner" id="gearSpinner">⚙️</div>
-                    <span class="step-counter" id="stepCounter">1 / 8</span>
+                    <span class="step-counter" id="stepCounter">0 / 8</span>
                     <small class="dial-guide-text" id="dialGuideText">1번 버튼 클릭!</small>
                   </div>
                   <button class="dial-btn" data-step="1" id="dBtn1">1</button>
@@ -215,16 +217,6 @@
                   <button class="dial-btn" data-step="6" id="dBtn6">6</button>
                   <button class="dial-btn" data-step="7" id="dBtn7">7</button>
                   <button class="dial-btn" data-step="8" id="dBtn8">8</button>
-                </div>
-              </div>
-              <div class="machine-col-right">
-                <div class="extend-card-block">
-                  <p class="extend-info-text">
-                    토큰을 1개 소모하여<br>시간을 2초 늘릴<br>수 있습니다.
-                  </p>
-                  <button id="btnExtend" class="btn-extend-action">
-                    시간 2초 늘리기<br><span class="sub-cost">(토큰 1개)</span>
-                  </button>
                 </div>
               </div>
             </div>
@@ -239,6 +231,9 @@
               <p>2. <strong>왼쪽 문</strong>의 암호는 <strong>5</strong>이다. 저기가 바로 탈출구인걸까? </p>
               <p>3. 내가 <strong>기절하고 깨어나면</strong> 가지고있던 토큰을 누군가가 <strong>옆 상자</strong>에 쌓아놓는다.<br><br></p>
               <p>아, 일기를 적다보니 벌써 시간이... 다시 깨어나면 <strong>옆 상자부터 확인</strong>해야겠군.</p>
+              <div class="diary-confirm-row">
+                <button id="btnDiaryRead" class="btn-clean-action highlight" style="display:none;">읽었다</button>
+              </div>
             </div>
           </div>
 
