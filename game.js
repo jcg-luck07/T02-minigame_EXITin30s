@@ -899,7 +899,13 @@
 
   DOM.dialBtns.forEach((btn, idx) => {
     const n = idx + 1;
-    btn.addEventListener('click', () => handleDialButtonClick(n));
+    // 누르는 순간 작동(pointerdown). 키보드 조작(click, detail===0)만 보조로 허용
+    btn.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      handleDialButtonClick(n);
+    });
+    btn.addEventListener('click', (e) => { if (e.detail === 0) handleDialButtonClick(n); });
   });
   DOM.btnDiaryRead.addEventListener('click', handleDiaryRead);
 

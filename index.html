@@ -10,28 +10,31 @@
   <div id="gameApp" class="escape-game-wrap">
 
     <main class="room-viewport" id="roomViewport">
+      <div class="stage-column">
+        <div class="stage-topbar">
+      <!-- 타이머 -->
+      <div class="timer-above-stage" id="hudTimer">
+        <div class="timer-big-display" id="timeDisplay">30.0s</div>
+      </div>
+
+      <!-- 우측 상단 구석 설정 버튼 -->
+      <div class="corner-controls">
+        <div class="volume-control-wrap">
+          <button id="btnMute" class="corner-btn" title="음소거 / 볼륨">🔊</button>
+          <div class="volume-slider-panel" id="volumeSliderPanel">
+            <input type="range" id="volumeSlider" min="0" max="100" value="60" step="1" orient="vertical">
+            <span class="volume-value" id="volumeValueText">60</span>
+          </div>
+        </div>
+        <button id="btnPause" class="corner-btn" title="일시정지">⏸️</button>
+        <button id="btnReducedMotion" class="corner-btn" title="연출 줄이기">✨</button>
+        <button id="btnResetSave" class="corner-btn danger" title="저장 데이터 초기화">🔄</button>
+        <button id="btnOpenHistory" class="corner-btn" title="기록">📊<span id="historyBadge" class="corner-badge">0</span></button>
+      </div>
+        </div>
+
       <div class="room-stage" id="roomStage">
         <img src="assets/room_empty.webp" alt="밀실 배경" class="layer-bg" id="roomBgImg">
-
-        <!-- 타이머 -->
-        <div class="timer-above-stage" id="hudTimer">
-          <div class="timer-big-display" id="timeDisplay">30.0s</div>
-        </div>
-
-        <!-- 우측 상단 구석 설정 버튼 -->
-        <div class="corner-controls">
-          <div class="volume-control-wrap">
-            <button id="btnMute" class="corner-btn" title="음소거 / 볼륨">🔊</button>
-            <div class="volume-slider-panel" id="volumeSliderPanel">
-              <input type="range" id="volumeSlider" min="0" max="100" value="60" step="1" orient="vertical">
-              <span class="volume-value" id="volumeValueText">60</span>
-            </div>
-          </div>
-          <button id="btnPause" class="corner-btn" title="일시정지">⏸️</button>
-          <button id="btnReducedMotion" class="corner-btn" title="연출 줄이기">✨</button>
-          <button id="btnResetSave" class="corner-btn danger" title="저장 데이터 초기화">🔄</button>
-          <button id="btnOpenHistory" class="corner-btn" title="기록">📊<span id="historyBadge" class="corner-badge">0</span></button>
-        </div>
 
         <div class="toast-msg" id="toastMsg"></div>
 
@@ -103,6 +106,7 @@
 
         <!-- 바깥 -->
         <div id="outsideRoomObjects" class="room-objects-set" style="display:none;"></div>
+      </div>
       </div>
 
       <!-- 페이드 오버레이 -->
