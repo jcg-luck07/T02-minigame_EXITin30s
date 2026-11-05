@@ -30,13 +30,13 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
 
 /* ===== 우측 상단 구석 컨트롤 ===== */
 .corner-controls {
-  position: fixed;
-  top: 12px;
-  right: 12px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 6px;
-  z-index: 200;
+  z-index: 120; /* 시작화면(100)·팝업(30)보다 위 */
 }
 .corner-btn {
   width: 40px; height: 40px;
@@ -75,8 +75,9 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
 .volume-control-wrap { position: relative; }
 .volume-slider-panel {
   position: absolute;
-  top: 0;
-  right: calc(100% + 8px);
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(17,23,34,0.95);
   border: 1px solid #334155;
   border-radius: var(--radius-sm);
@@ -108,15 +109,17 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
 
 /* ===== 타이머 ===== */
 .timer-above-stage {
+  position: absolute;
+  top: 10px; left: 0; right: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 14px 20px 10px 20px;
-  flex-shrink: 0;
+  pointer-events: none;
+  z-index: 40;
   background: transparent;
 }
 .timer-big-display {
-  font-size: 3.6rem;
+  font-size: 2.6rem;
   font-weight: 900;
   font-family: monospace;
   color: var(--accent-cyan);
@@ -127,9 +130,9 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
   background: linear-gradient(180deg, #162030, #0c131e);
   border: 2px solid #23354d;
   border-radius: var(--radius-md);
-  padding: 8px 40px;
+  padding: 6px 30px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.6);
-  min-width: 200px;
+  min-width: 150px;
   text-align: center;
 }
 .timer-above-stage.danger-state .timer-big-display {
@@ -150,7 +153,7 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
 .room-stage {
   position: relative; width: 100%; max-width: 1200px;
   aspect-ratio: 262 / 123;
-  max-height: calc(100vh - 180px);
+  max-height: calc(100vh - 30px);
   box-shadow: 0 10px 40px rgba(0,0,0,0.85);
   border: 2px solid #1a2333; border-radius: var(--radius-md);
   overflow: hidden; background-color: #000;
@@ -814,8 +817,8 @@ body.reduced-motion .confetti-container { display: none; }
   cursor: not-allowed;
 }
 .toast-msg {
-  position: absolute; left: 50%; bottom: 7%;
-  transform: translateX(-50%);
+  position: absolute; left: 50%; top: 40%;
+  transform: translate(-50%, -100%);
   background: rgba(15,23,42,0.92); color: #e2e8f0;
   border: 1px solid var(--accent-cyan);
   border-radius: var(--radius-sm);

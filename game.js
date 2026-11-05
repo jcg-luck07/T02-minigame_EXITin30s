@@ -49,6 +49,8 @@
     chestTokens: 2,
     celebrationChestClaimed: false,
     diaryRead: false,
+    doorAUnlocked: false,
+    doorBUnlocked: false,
     isMuted: false,
     volume: 0.6,
     isReducedMotion: false,
@@ -228,6 +230,8 @@
 
       if (typeof p.celebrationChestClaimed === 'boolean') persistentData.celebrationChestClaimed = p.celebrationChestClaimed;
       if (typeof p.diaryRead === 'boolean') persistentData.diaryRead = p.diaryRead;
+      if (typeof p.doorAUnlocked === 'boolean') persistentData.doorAUnlocked = p.doorAUnlocked;
+      if (typeof p.doorBUnlocked === 'boolean') persistentData.doorBUnlocked = p.doorBUnlocked;
       if (typeof p.isMuted === 'boolean') persistentData.isMuted = p.isMuted;
       if (typeof p.volume === 'number' && !isNaN(p.volume)) {
         persistentData.volume = Math.min(1, Math.max(0, p.volume));
@@ -334,8 +338,8 @@
     state.timeRemaining = BASE_TIME;
     state.currentTokens = 0;
     state.currentRoom = 'main';
-    state.doorAOpen = false;
-    state.doorBOpen = false;
+    state.doorAOpen = persistentData.doorAUnlocked;
+    state.doorBOpen = persistentData.doorBUnlocked;
     state.doorADialTens = 0; state.doorADialOnes = 0;
     state.doorBDialTens = 0; state.doorBDialOnes = 0;
     state.activeDoor = null;
@@ -376,8 +380,8 @@
     state.timeRemaining = BASE_TIME;
     state.currentTokens = 0;
     state.currentRoom = 'main';
-    state.doorAOpen = false;
-    state.doorBOpen = false;
+    state.doorAOpen = persistentData.doorAUnlocked;
+    state.doorBOpen = persistentData.doorBUnlocked;
     state.doorADialTens = 0; state.doorADialOnes = 0;
     state.doorBDialTens = 0; state.doorBDialOnes = 0;
     state.activeDoor = null;
@@ -486,7 +490,7 @@
   function openCloseup(viewName) {
     if (state.status !== 'PLAYING') return;
     if (viewName === 'machine' && state.timerLocked) {
-      showToast('작동 방법을 모르겠다. 주변을 둘러보자.');
+      showToast('작동 방법을 모르겠다. 주변을 둘러보자.', DOM.propMachine);
       return;
     }
     state.currentView = viewName;
@@ -527,8 +531,14 @@
 
   // ===== 안내 토스트 / 첫 일지 =====
   let toastTimer = null;
-  function showToast(msg) {
+  function showToast(msg, anchorEl) {
     DOM.toastMsg.textContent = msg;
+    if (anchorEl) {
+      const stage = document.getElementById('roomStage').getBoundingClientRect();
+      const a = anchorEl.getBoundingClientRect();
+      DOM.toastMsg.style.left = (a.left + a.width / 2 - stage.left) + 'px';
+      DOM.toastMsg.style.top = (a.top - stage.top - 10) + 'px';
+    }
     DOM.toastMsg.classList.add('show');
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(() => DOM.toastMsg.classList.remove('show'), 2200);
@@ -547,7 +557,8 @@
 
   // ===== 문 클릭 =====
   function handleDoorAClick() {
-    if (state.doorAOpen) {
+    if (state.doorAOpen || persistentData.doorAUnlocked) {
+      if (!state.doorAOpen) { state.doorAOpen = true; applyRoomVisual(); SoundFX.doorOpen(); }
       state.activeDoor = 'A';
       openCloseup('doorOpen');
     } else {
@@ -555,7 +566,8 @@
     }
   }
   function handleDoorBClick() {
-    if (state.doorBOpen) {
+    if (state.doorBOpen || persistentData.doorBUnlocked) {
+      if (!state.doorBOpen) { state.doorBOpen = true; applyRoomVisual(); SoundFX.doorOpen(); }
       state.activeDoor = 'B';
       openCloseup('doorOpen');
     } else {
@@ -613,8 +625,9 @@
     state.currentTokens -= amount;
 
     if (amount === required) {
-      if (isA) state.doorAOpen = true;
-      else state.doorBOpen = true;
+      if (isA) { state.doorAOpen = true; persistentData.doorAUnlocked = true; }
+      else { state.doorBOpen = true; persistentData.doorBUnlocked = true; }
+      savePersistentData();
       applyRoomVisual();
       SoundFX.doorOpen();
       state.activeDoor = target;
@@ -949,6 +962,7 @@
     if (confirm('모든 상자 토큰과 기록을 초기화하시겠습니까?')) {
       persistentData = {
         chestTokens: 2, celebrationChestClaimed: false, diaryRead: false,
+        doorAUnlocked: false, doorBUnlocked: false,
         isMuted: false, volume: 0.6,
         isReducedMotion: false, history: []
       };
