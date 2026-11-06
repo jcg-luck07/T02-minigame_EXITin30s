@@ -836,8 +836,8 @@
     DOM.modalTitle.textContent = '💨시간 초과💨';
     DOM.modalTitle.style.color = '#f87171';
     DOM.modalContent.innerHTML = `
-      <p style="font-size:1.95rem; color:#cbd5e1; line-height:1.6; margin:0;">
-        <br>
+      <p style="font-size:1.15rem; color:#94a3b8; line-height:1.6; margin:0;">
+        토큰 절반을 잃어버렸다.
       </p>
     `;
     DOM.btnRestartGame.textContent = '다시 하기';
