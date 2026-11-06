@@ -13,6 +13,8 @@
   const DEMO_TOKEN_PER_CLEAR = 3;
   const NORMAL_TOKEN_PER_CLEAR = 2;
   const CELEBRATION_CHEST_TOKENS = 12;
+  const INITIAL_TOKENS = 2;          // 최초(또는 새 게임) 시작 시 주머니 토큰
+  const FAINT_KEEP_RATIO = 0.5;      // 기절하면 50%를 잃고 절반(반올림)만 남음
   const CONFETTI_COLORS = [
     '#fbbf24', '#f87171', '#34d399', '#38bdf8', '#c084fc',
     '#facc15', '#fb923c', '#a3e635', '#f472b6', '#e2e8f0'
@@ -46,7 +48,7 @@
   };
 
   let persistentData = {
-    chestTokens: 2,
+    pocketTokens: 2,   // 주머니에 남아 이어지는 토큰 (기절 시 50% 분실)
     celebrationChestClaimed: false,
     diaryRead: false,
     doorAUnlocked: false,
@@ -143,7 +145,6 @@
     propDesk: document.getElementById('propDesk'),
     propBed: document.getElementById('propBed'),
     startSubtitle: document.getElementById('startSubtitle'),
-    propChest: document.getElementById('propChest'),
     propMachine: document.getElementById('propMachine'),
 
     propCelebrationDoor: document.getElementById('propCelebrationDoor'),
@@ -163,7 +164,6 @@
     viewDoorOpen: document.getElementById('viewDoorOpen'),
     viewMachine: document.getElementById('viewMachine'),
     viewDesk: document.getElementById('viewDesk'),
-    viewChest: document.getElementById('viewChest'),
     viewCelebrationChest: document.getElementById('viewCelebrationChest'),
     viewCelebrationClear: document.getElementById('viewCelebrationClear'),
     viewBed: document.getElementById('viewBed'),
@@ -187,8 +187,6 @@
     dialBtns: [1,2,3,4,5,6,7,8].map(n => document.getElementById('dBtn'+n)),
     btnDiaryRead: document.getElementById('btnDiaryRead'),
 
-    crateCountText: document.getElementById('crateCountText'),
-    btnTakeChest: document.getElementById('btnTakeChest'),
 
     celebrationTokenIcons: document.getElementById('celebrationTokenIcons'),
     btnClaimCelebrationChest: document.getElementById('btnClaimCelebrationChest'),
@@ -216,15 +214,17 @@
     
     // 1. 저장된 데이터가 아예 없는 경우 (최초 실행)
     if (!raw) { 
-      persistentData.chestTokens = 2; // ★ 최초 1회 2개 지급
+      persistentData.pocketTokens = INITIAL_TOKENS; // ★ 최초 1회 지급
       savePersistentData(); 
       return; 
     }
     
     try {
       const p = JSON.parse(raw);
-      if (typeof p.chestTokens === 'number' && !isNaN(p.chestTokens)) {
-        persistentData.chestTokens = Math.max(0, Math.floor(p.chestTokens));
+      // 예전 저장값(chestTokens)도 이어받음
+      const savedTokens = (typeof p.pocketTokens === 'number') ? p.pocketTokens : p.chestTokens;
+      if (typeof savedTokens === 'number' && !isNaN(savedTokens)) {
+        persistentData.pocketTokens = Math.max(0, Math.floor(savedTokens));
       }
       
       // ★ 중요: 기존에 있던 '0개면 5개로 채워주는' 코드는 여기서 삭제했습니다.
@@ -242,7 +242,7 @@
       if (Array.isArray(p.history)) persistentData.history = p.history.slice(0, 50);
     } catch (e) {
       console.warn('[The Machine] 손상 저장값 감지, 기본값 복구', e);
-      persistentData.chestTokens = 2; // 에러 났을 때도 2개 지급
+      persistentData.pocketTokens = INITIAL_TOKENS; // 에러 났을 때도 기본 지급
       savePersistentData();
     }
   }
@@ -343,7 +343,7 @@
     state.timerLocked = !persistentData.diaryRead;
     DOM.pauseOverlay.style.display = 'none';
     state.timeRemaining = BASE_TIME;
-    state.currentTokens = 0;
+    state.currentTokens = persistentData.pocketTokens;
     state.currentRoom = 'main';
     state.doorAOpen = false;   // 문은 닫힌 채 시작 (해제 여부는 persistentData에 유지)
     state.doorBOpen = false;
@@ -385,7 +385,7 @@
     state.timerLocked = false;
     DOM.pauseOverlay.style.display = 'none';
     state.timeRemaining = BASE_TIME;
-    state.currentTokens = 0;
+    state.currentTokens = persistentData.pocketTokens;
     state.currentRoom = 'main';
     state.doorAOpen = false;   // 문은 닫힌 채 시작 (해제 여부는 persistentData에 유지)
     state.doorBOpen = false;
@@ -492,7 +492,7 @@
   // ===== 클로즈업 =====
   const ALL_VIEWS = [
     'viewDoorAClosed','viewDoorBClosed','viewDoorOpen','viewMachine',
-    'viewDesk','viewChest','viewCelebrationChest','viewCelebrationClear','viewBed'
+    'viewDesk','viewCelebrationChest','viewCelebrationClear','viewBed'
   ];
 
   function openCloseup(viewName) {
@@ -510,7 +510,6 @@
       doorOpen: DOM.viewDoorOpen,
       machine: DOM.viewMachine,
       desk: DOM.viewDesk,
-      chest: DOM.viewChest,
       celebrationChest: DOM.viewCelebrationChest,
       celebrationClear: DOM.viewCelebrationClear,
       bed: DOM.viewBed
@@ -741,18 +740,7 @@
     });
   }
 
-  // ===== 상자들 =====
-  function handleTakeChest() {
-    if (state.status !== 'PLAYING') return;
-    if (persistentData.chestTokens <= 0) return;
-    const n = persistentData.chestTokens;
-    state.currentTokens += n;
-    persistentData.chestTokens = 0;
-    savePersistentData();
-    SoundFX.claimChest();
-    updateUI();
-  }
-
+  // ===== 축하방 상자 =====
   function renderCelebrationChestView() {
     if (persistentData.celebrationChestClaimed) {
       DOM.celebrationTokenIcons.innerHTML = '';
@@ -815,14 +803,19 @@
     }, 3000);
   }
 
-  // 진엔딩 후: 진행 데이터(상자 토큰, 일지 확인, 문 해제, 축하방 상자)만 초기화. 기록표·소리 설정은 유지
+  // 진엔딩 후: 진행 데이터(주머니 토큰, 일지 확인, 문 해제, 축하방 상자)만 초기화. 기록표·소리 설정은 유지
   function resetProgressForNewGame() {
-    persistentData.chestTokens = 2;
+    persistentData.pocketTokens = INITIAL_TOKENS;
     persistentData.celebrationChestClaimed = false;
     persistentData.diaryRead = false;
     persistentData.doorAUnlocked = false;
     persistentData.doorBUnlocked = false;
     savePersistentData();
+  }
+
+  // 기절: 가진 토큰의 50%를 잃음 (소수점은 반올림)
+  function faintTokens(n) {
+    return Math.round(n * FAINT_KEEP_RATIO);
   }
 
   // ===== 게임오버 =====
@@ -831,10 +824,11 @@
     if (backgroundIntervalId) clearInterval(backgroundIntervalId);
     closeCloseupSilent();
     SoundFX.gameOver();
-    const saved = state.currentTokens;
-    persistentData.chestTokens += saved;
+    const before = state.currentTokens;
+    const after = faintTokens(before);
+    persistentData.pocketTokens = after;
     savePersistentData();
-    recordHistory('시간 초과', `토큰 ${saved}개 상자 저장`);
+    recordHistory('시간 초과', `기절: 토큰 ${before}개 → ${after}개 (절반 분실)`);
 
     DOM.resultModalCard.classList.add('wide-result');
     DOM.modalIcon.textContent = '';
@@ -872,8 +866,6 @@
     } else DOM.hudTimer.classList.remove('danger-state');
     DOM.hudTimer.classList.toggle('timer-hidden', state.timerLocked || state.status === 'READY');
     DOM.propMachine.classList.toggle('locked', state.timerLocked && state.status === 'PLAYING');
-    DOM.crateCountText.textContent = persistentData.chestTokens;
-    DOM.btnTakeChest.disabled = (persistentData.chestTokens <= 0);
   }
 
   function setGameMode(mode) {
@@ -901,7 +893,6 @@
   DOM.propMachine.addEventListener('click', () => openCloseup('machine'));
   DOM.propDesk.addEventListener('click', () => openCloseup('desk'));
   DOM.propBed.addEventListener('click', () => openCloseup('bed'));
-  DOM.propChest.addEventListener('click', () => openCloseup('chest'));
   DOM.propCelebrationDesk.addEventListener('click', handleCelebrationDeskClick);
   DOM.propCelebrationChest.addEventListener('click', () => {
     if (state.doorAOpen) return;
@@ -938,7 +929,6 @@
   DOM.btnEnterDoor.addEventListener('click', handleEnterDoor);
   DOM.btnCloseDoor.addEventListener('click', handleCloseDoor);
 
-  DOM.btnTakeChest.addEventListener('click', handleTakeChest);
   DOM.btnClaimCelebrationChest.addEventListener('click', handleClaimCelebrationChest);
   DOM.btnRestartGame.addEventListener('click', () => {
     DOM.resultModal.style.display = 'none';
@@ -991,9 +981,9 @@
     DOM.btnReducedMotion.textContent = persistentData.isReducedMotion ? '🛑' : '✨';
   });
   DOM.btnResetSave.addEventListener('click', () => {
-    if (confirm('모든 상자 토큰과 기록을 초기화하시겠습니까?')) {
+    if (confirm('모든 토큰과 기록을 초기화하시겠습니까?')) {
       persistentData = {
-        chestTokens: 2, celebrationChestClaimed: false, diaryRead: false,
+        pocketTokens: INITIAL_TOKENS, celebrationChestClaimed: false, diaryRead: false,
         doorAUnlocked: false, doorBUnlocked: false,
         isMuted: false, volume: 0.6,
         isReducedMotion: false, history: []
@@ -1045,17 +1035,18 @@
     if (e.key === 'Escape' && state.currentView !== 'none') closeCloseup();
   });
 
-  // ===== 새로고침/창 닫기 시 토큰 상자로 이동 (기절 처리) =====
+  // ===== 새로고침/창 닫기 = 기절 처리 (새로고침으로 분실을 피하지 못하게) =====
   window.addEventListener('beforeunload', () => {
-    // 게임 플레이 중일 때만 토큰을 상자로 옮깁니다. (이미 게임오버면 중복 저장 방지)
+    // 게임 플레이 중일 때만 적용 (이미 게임오버면 중복 적용 방지)
     if (state.status === 'PLAYING') {
-      persistentData.chestTokens += state.currentTokens;
+      persistentData.pocketTokens = faintTokens(state.currentTokens);
       savePersistentData();
     }
   });
 
   // ===== 초기화 =====
   loadPersistentData();
+  state.currentTokens = persistentData.pocketTokens;
   if (persistentData.isReducedMotion) document.body.classList.add('reduced-motion');
   DOM.historyBadge.textContent = persistentData.history.length;
   DOM.btnReducedMotion.textContent = persistentData.isReducedMotion ? '🛑' : '✨';

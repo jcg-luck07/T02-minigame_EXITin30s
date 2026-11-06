@@ -236,7 +236,6 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
 .prop-door-left { left: 5%; bottom: 13%; width: 15%; }
 .prop-bed { left: 20%; bottom: 11%; width: 17%; z-index: 4;}
 .prop-desk { left: 38%; bottom: 10%; width: 13%; }
-.prop-chest { left: 51%; bottom: 13%; width: 5%; }
 .prop-machine { left: 57%; bottom: 12%; width: 13%; }
 .prop-door-right { left: 72%; bottom: 13%; width: 15%; }
 
@@ -630,16 +629,6 @@ body.reduced-motion .confetti-container { display: none; }
 }
 .diary-simple strong { color: var(--accent-gold); }
 .diary-simple strong.note-title { color: #fff; }
-/* 상자 팝업: 축하방 상자 보상 박스(.celebration-chest-reward)와 같은 노란 스타일 */
-.vault-box {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 12px; padding: 16px;
-  background: rgba(251,191,36,0.06);
-  border: 1px dashed rgba(251,191,36,0.4);
-  border-radius: var(--radius-sm);
-  text-align: center; margin-bottom: 20px;
-}
-.vault-label { font-size: 0.9rem; color: var(--text-dim); }
 
 /* ===== 축하방 상자 ===== */
 .celebration-chest-content {

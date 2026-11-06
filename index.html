@@ -58,10 +58,6 @@
             <img src="assets/desk.webp" alt="일지">
             <div class="obj-indicator">일지</div>
           </div>
-          <div class="room-prop prop-chest" id="propChest" title="상자">
-            <img src="assets/chest.webp" alt="상자">
-            <div class="obj-indicator">상자</div>
-          </div>
           <div class="room-prop prop-machine" id="propMachine" title="기계">
             <img src="assets/machine.webp" alt="기계">
             <div class="obj-indicator">기계</div>
@@ -232,21 +228,11 @@
                 눈을 뜨면 다시 이 침대다. 누가 날 옮겨놓는걸까? 그렇지만 계속 반복되는 이 시간을 활용해서 몇가지 알아낸게 있다.<br><br></p>
               <p>1. 오른쪽 <strong>기계에서 작업을 한 만큼 토큰</strong>이 나온다.</p>
               <p>2. <strong>왼쪽 문</strong>의 암호는 <strong>5</strong>이다. 저기가 바로 탈출구인걸까? </p>
-              <p>3. 내가 <strong>기절하고 깨어나면</strong> 가지고있던 토큰을 누군가가 <strong>옆 상자</strong>에 쌓아놓는다.<br><br></p>
-              <p>아, 일기를 적다보니 벌써 시간이... 다시 깨어나면 <strong>옆 상자부터 확인</strong>해야겠군.</p>
+              <p>3. 내가 <strong>기절하고 깨어나면</strong> 가지고있던 <strong>토큰 일부를 누군가가 가져간다</strong>.<br><br></p>
+              <p>아, 일기를 적다보니 벌써 시간이... 다시 깨어나면 <strong>기계에서 토큰</strong>부터 벌어야겠군.</p>
               <div class="diary-confirm-row">
                 <button id="btnDiaryRead" class="btn-clean-action highlight" style="display:none;">읽었다</button>
               </div>
-            </div>
-          </div>
-
-          <div class="inspect-view" id="viewChest" style="display: none;">
-            <div class="vault-box">
-              <span class="vault-label">보관된 토큰:</span>
-              <div class="token-reward-line">🪙 × <span id="crateCountText">0</span></div>
-            </div>
-            <div class="inspect-actions">
-              <button id="btnTakeChest" class="btn-clean-action highlight">모두 가져간다</button>
             </div>
           </div>
 
