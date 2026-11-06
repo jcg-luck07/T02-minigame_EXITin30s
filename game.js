@@ -835,11 +835,10 @@
     DOM.modalIcon.style.minHeight = '1em'; // 공간 확보
     DOM.modalTitle.textContent = '💨시간 초과💨';
     DOM.modalTitle.style.color = '#f87171';
-    DOM.modalContent.innerHTML = `
-      <p style="font-size:1.15rem; color:#94a3b8; line-height:1.6; margin:0;">
-        토큰 절반을 잃어버렸다.
-      </p>
-    `;
+    // 가진 토큰이 2개 이상일 때만 분실 문구 표시 (1개 이하는 잃은 게 없으므로 생략)
+    DOM.modalContent.innerHTML = (before >= 2)
+      ? `<p style="font-size:0.95rem; color:#94a3b8; line-height:1.6; margin:0;">토큰 절반을 잃어버렸다.</p>`
+      : '';
     DOM.btnRestartGame.textContent = '다시 하기';
     DOM.resultModal.style.display = 'flex';
     updateUI();
